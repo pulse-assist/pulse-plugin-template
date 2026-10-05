@@ -1,11 +1,13 @@
-# Тот же плагин как контейнер — для runtime.kind = "docker" (следующий этап Пульса) и плагинов на других языках.
-# Python-плагину с kind = "python" этот файл не нужен: Пульс запускает его в своём окружении или в venv.
+# Плагин контейнером — для runtime.kind = "docker" (и для плагинов не на Python: тогда свой образ целиком).
+# Перед сборкой Пульс кладёт пакет pulse_plugin в контекст сборки: .pulse_plugin_sdk/
+# Локально: cp -r ../pulse/plugin_sdk .pulse_plugin_sdk && docker build -t my-plugin .
 FROM python:3.12-slim
 WORKDIR /plugin
+COPY .pulse_plugin_sdk /tmp/pulse_plugin
 COPY backend/requirements.txt backend/requirements.txt
-RUN pip install --no-cache-dir "pulse-plugin @ git+https://github.com/pulse-assist/pulse.git#subdirectory=plugin_sdk" \
-    && pip install --no-cache-dir -r backend/requirements.txt
+RUN pip install --no-cache-dir /tmp/pulse_plugin && pip install --no-cache-dir -r backend/requirements.txt
 COPY . .
 WORKDIR /plugin/backend
+# порт задаёт Пульс (PULSE_PLUGIN_PORT); данные — /plugin/data, папка в «Файлах» — /plugin/files
 ENV PULSE_PLUGIN_PORT=8080
-CMD ["sh", "-c", "uvicorn example_plugin.app:app --host 0.0.0.0 --port ${PULSE_PLUGIN_PORT}"]
+CMD ["sh", "-c", "exec uvicorn example_plugin.app:app --host 0.0.0.0 --port ${PULSE_PLUGIN_PORT}"]

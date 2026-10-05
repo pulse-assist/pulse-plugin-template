@@ -26,5 +26,9 @@
   "skills": ["skills/example.md"],
   "commands": "commands.json",
   "agents": ["agents/example-helper.md"],
+  "jobs": [
+    { "name": "Проверка доски", "cron": "0 10 * * 1-5", "command": "check",
+      "description": "По будням в 10.00 — сигнал, если открытых задач больше порога" }
+  ],
   "install": "INSTALL.md"
 }
