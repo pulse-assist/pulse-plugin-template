@@ -1,0 +1,30 @@
+{
+  "id": "example",
+  "name": "Пример плагина",
+  "version": "0.1.0",
+  "pulse": ">=1.0",
+  "description": "Шаблон: страница со сводкой, команды для агентов, сигнал в ленту, настройки и секрет",
+  "permissions": ["cards:read", "signals:create", "files"],
+  "runtime": {
+    "kind": "python",
+    "entry": "example_plugin.app:app",
+    "path": "backend",
+    "requirements": "backend/requirements.txt",
+    "health": "/health"
+  },
+  "ui": { "dist": "ui" },
+  "menu": [
+    { "id": "summary", "title": "Сводка", "icon": "bi-bar-chart", "page": "index.html#summary" }
+  ],
+  "settings": {
+    "greeting": { "type": "string", "title": "Приветствие на странице", "default": "Привет" },
+    "threshold": { "type": "integer", "title": "Порог задач для сигнала", "default": 10,
+                   "description": "Если открытых задач больше — команда check заведёт сигнал" },
+    "api_token": { "type": "string", "title": "Токен внешнего сервиса", "secret": true,
+                   "description": "Пример секрета: хранится зашифрованным, плагину приходит в окружении" }
+  },
+  "skills": ["skills/example.md"],
+  "commands": "commands.json",
+  "agents": ["agents/example-helper.md"],
+  "install": "INSTALL.md"
+}

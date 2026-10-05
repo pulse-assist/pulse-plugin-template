@@ -1,0 +1,3 @@
+/* Токены --pulse-* и классы pl-* Пульс уже подмешал в страницу — здесь только своё. */
+.btn { font: inherit; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--pulse-border); background: #fff; cursor: pointer; }
+.btn:hover { background: var(--pulse-hover); }

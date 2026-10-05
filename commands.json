@@ -1,0 +1,14 @@
+[
+  {
+    "name": "summary",
+    "description": "Сколько карточек каждого типа",
+    "args": []
+  },
+  {
+    "name": "check",
+    "description": "Проверить число открытых задач и завести сигнал, если их больше порога",
+    "args": [
+      { "name": "threshold", "description": "свой порог вместо настройки", "type": "integer" }
+    ]
+  }
+]
