@@ -8,13 +8,21 @@
 
 ## Поставить в Пульс
 
-Написать в чате Пульса: «Поставь плагин https://github.com/…/<репозиторий>» — агент поставит, прочитает
-[INSTALL.md](INSTALL.md), спросит недостающее и проверит. Или командой: `pulse plugins install <ссылка>`.
+Из каталога — Настройки → Плагины → «Каталог» или в чате: «поставь плагин <название>». По ссылке:
+«Поставь плагин https://github.com/…/<репозиторий>». Агент поставит, прочитает [INSTALL.md](INSTALL.md),
+спросит недостающее и проверит.
 
 ## Сделать свой плагин
 
-Скопировать шаблон и попросить агента (Claude Code, Cursor): «сделай из шаблона плагин, который …».
-Инструкции для агента — [AGENTS.md](AGENTS.md) (и [CLAUDE.md](CLAUDE.md) для Claude Code).
+```bash
+pip install "pulse-plugin @ git+https://github.com/pulse-assist/pulse-plugin-sdk@v1.1.0"
+pulse-plugin new weather --name "Погода"
+```
+
+и попросить агента (Claude Code, Cursor, Codex): «сделай плагин, который …». Инструкции для агента —
+[AGENTS.md](AGENTS.md) (и [CLAUDE.md](CLAUDE.md)), контракт платформы —
+[CONTRACT.md](https://github.com/pulse-assist/pulse-plugin-sdk/blob/main/CONTRACT.md). Доступ к коду Пульса не нужен.
+Выпуск — тег `vX.Y.Z` (CI соберёт релиз), в каталог — `pulse-plugin publish` и MR.
 
 ## Структура
 

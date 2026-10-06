@@ -1,6 +1,6 @@
 # Плагин контейнером — для runtime.kind = "docker" (и для плагинов не на Python: тогда свой образ целиком).
 # Перед сборкой Пульс кладёт пакет pulse_plugin в контекст сборки: .pulse_plugin_sdk/
-# Локально: cp -r ../pulse/plugin_sdk .pulse_plugin_sdk && docker build -t my-plugin .
+# Локально: git clone --depth 1 -b v1.1.0 https://github.com/pulse-assist/pulse-plugin-sdk .pulse_plugin_sdk && docker build -t my-plugin .
 FROM python:3.12-slim
 WORKDIR /plugin
 COPY .pulse_plugin_sdk /tmp/pulse_plugin
