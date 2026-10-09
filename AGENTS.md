@@ -115,6 +115,30 @@ def summary():
 - Секреты не логируй и не возвращай в ответах команд.
 - Сеть — только туда, что заявлено в описании плагина; таймауты на все внешние запросы.
 
+## Хранилище — папка `@<id>` в «Файлах» (облачные диски и т.п.)
+
+Плагин, который даёт доступ к внешним файлам (облачный диск, сетевая папка), не копирует их в Пульс, а отдаёт как
+**хранилище**: Пульс показывает его папкой `@<id плагина>` в «Файлах», у `pulse files` и в смонтированном дереве
+агентов. Манифест — право `files:provide` и `"files": {"provider": {"title": "Мой диск", "icon": "bi-cloud"}}`
+(контракт 1.3: `"pulse": ">=1.3"`). Код — наследник `pulse_plugin.fs.FileProvider`:
+
+```python
+from pulse_plugin.fs import FileProvider, NotFound, ReadOnly, entry
+
+class Disk(FileProvider):
+    def list(self, path):                  # "" — корень хранилища; пути через «/»
+        return [entry("отчёт.pdf", "file", size=1024, modified_at="2026-10-10T09:00:00Z")]
+    def stat(self, path): ...              # по умолчанию — из списка родителя
+    def read(self, path, offset=0, length=None): ...   # bytes или итератор; offset/length — для Range
+    def write(self, path, stream, overwrite=True): ... # stream.read(n); вернуть entry(...)
+    # mkdir, move, delete — по умолчанию ReadOnly
+
+plugin.provide_files(Disk())
+```
+
+Ошибки — исключения `pulse_plugin.fs` (`NotFound`, `Exists`, `NotEmpty`, `ReadOnly`, `NoSpace`, `FsError`): их текст
+увидят владелец и агенты. Протокол целиком — в CONTRACT.md, раздел «Поставщик файлов». Пример — плагин «Яндекс Диск».
+
 ## Команды для агентов — `commands.json`
 
 ```json

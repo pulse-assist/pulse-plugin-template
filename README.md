@@ -15,7 +15,7 @@
 ## Сделать свой плагин
 
 ```bash
-pip install "pulse-plugin @ git+https://github.com/pulse-assist/pulse-plugin-sdk@v1.1.0"
+pip install "pulse-plugin @ git+https://github.com/pulse-assist/pulse-plugin-sdk@v1.3.0"
 pulse-plugin new weather --name "Погода"
 ```
 
