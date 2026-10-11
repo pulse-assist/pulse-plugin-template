@@ -139,6 +139,23 @@ plugin.provide_files(Disk())
 Ошибки — исключения `pulse_plugin.fs` (`NotFound`, `Exists`, `NotEmpty`, `ReadOnly`, `NoSpace`, `FsError`): их текст
 увидят владелец и агенты. Протокол целиком — в CONTRACT.md, раздел «Поставщик файлов». Пример — плагин «Яндекс Диск».
 
+## Распознавание речи — голосовые в Telegram и микрофон в чатах
+
+Плагин с моделью распознавания речи подключается к голосу Пульса: голосовые боту в Telegram и кнопка микрофона в
+поле ввода чатов. Манифест — право `speech:provide` и `"speech": {"title": "OpenAI, Groq"}` (контракт 1.6:
+`"pulse": ">=1.6"`). Код:
+
+```python
+from pulse_plugin.speech import NotConfigured
+
+@plugin.provide_speech
+async def transcribe(path, *, language, source, filename, mime):   # path — временный файл записи
+    return {"text": "…", "language": "ru", "duration_sec": 7.4, "model": "whisper-1"}
+```
+
+Ошибки — `BadAudio` (400), `TooLong` (413), `NotConfigured` (503 — нет ключей), `Upstream` (502). Расшифровки по
+просьбе агентов (длинные записи, видео) — обычные команды. Пример — плагин «SpeechToText» (pulse-assist/pulse-stt).
+
 ## Команды для агентов — `commands.json`
 
 ```json
@@ -150,6 +167,8 @@ plugin.provide_files(Disk())
   (флаг без значения — `true`). Обработчик — `@plugin.command("transactions list")` с тем же именем.
 - Ответ — компактный JSON: агент пересказывает его владельцу. Списки — с ограничением (`limit`).
 - `commands.json` и обработчики держи одинаковыми: справку агент читает из `commands.json`.
+- Пульс ждёт ответа команды 120 с. Долгой (расшифровка записи, большая выгрузка) — `"timeout_sec": 900` в её записи
+  (до 3600, контракт 1.6). Агенту удобнее ответ за минуту-две: дольше — верни номер задания и дай команду «результат».
 
 ## Фоновая работа — `jobs`
 
