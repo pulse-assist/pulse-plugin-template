@@ -51,7 +51,7 @@ Dockerfile            тот же плагин контейнером (runtime.k
 | `version` | `1.2.0`; новая версия = новый тег `v1.2.0` в репозитории |
 | `pulse` | совместимость с контрактом плагинов: `">=1.0"` |
 | `permissions` | что можно плагину (ниже); всё прочее Пульс отклоняет с 403 |
-| `runtime` | серверная часть: `kind: "python"`, `entry: "<пакет>.app:app"` (ASGI), `path: "backend"`, `requirements`, `health: "/health"`; Docker — `kind: "docker"`, `dockerfile`, `network` (`host` | `isolated`), `memory`, `cpus`. Нет блока — плагин без процесса (только страницы и скиллы) |
+| `runtime` | серверная часть: `kind: "python"`, `entry: "<пакет>.app:app"` (ASGI), `path: "backend"`, `requirements`, `health: "/health"`; Docker — `kind: "docker"`, `dockerfile`, `network` (`host` или `isolated`), `memory`, `cpus`. Нет блока — плагин без процесса (только страницы и скиллы) |
 | `ui` | `dist` — папка со страницами; `build` — команда сборки при установке (`"npm ci && npm run build"`), если dist не лежит в репозитории |
 | `menu` | пункты меню: `id`, `title` (коротко), `icon` (Bootstrap Icons, `bi-…`), `page` (`index.html#состояние`) |
 | `settings` | настройки по схеме: `type` (string, number, integer, boolean), `title`, `description`, `enum`, `default`, `secret: true` — для токенов и паролей |
@@ -162,6 +162,16 @@ async def transcribe(path, *, language, source, filename, mime):   # path — в
 
 Ошибки — `BadAudio` (400), `TooLong` (413), `NotConfigured` (503 — нет ключей), `Upstream` (502). Расшифровки по
 просьбе агентов (длинные записи, видео) — обычные команды. Пример — плагин «SpeechToText» (pulse-assist/pulse-stt).
+
+## Чужой код над файлами владельца — `files:mount` и изолированный контейнер
+
+Плагину, который выполняет код над файлами владельца (ноутбуки, скрипты), нужны все «Файлы», а не один файл по
+билету. Право `files:mount` (контракт 1.11: `"pulse": ">=1.11"`) — дерево «Файлов» папкой в процессе плагина:
+`plugin.fs_dir` (в Docker — `/pulse/fs`), пути — как в «Файлах»; `plugin.fs_path(путь)` принимает и абсолютный путь
+агента (`$PULSE_FS_DIR/…`). Дерево может пропасть при перезапуске Пульса — health отвечает ошибкой, пока папка не
+читается, и Пульс перезапустит контейнер. Такой контейнер держите в своей сети и с лимитами:
+`"runtime": {"kind": "docker", "network": "isolated", "memory": "2g", "cpus": 2}` — интернет есть, сервисы сервера
+(Mongo, порты 127.0.0.1) — нет. Пример — плагин DataLabs (pulse-assist/pulse-datalabs).
 
 ## Команды для агентов — `commands.json`
 
