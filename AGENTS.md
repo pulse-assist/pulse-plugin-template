@@ -51,7 +51,7 @@ Dockerfile            тот же плагин контейнером (runtime.k
 | `version` | `1.2.0`; новая версия = новый тег `v1.2.0` в репозитории |
 | `pulse` | совместимость с контрактом плагинов: `">=1.0"` |
 | `permissions` | что можно плагину (ниже); всё прочее Пульс отклоняет с 403 |
-| `runtime` | серверная часть: `kind: "python"`, `entry: "<пакет>.app:app"` (ASGI), `path: "backend"`, `requirements`, `health: "/health"`. Нет блока — плагин без процесса (только страницы и скиллы) |
+| `runtime` | серверная часть: `kind: "python"`, `entry: "<пакет>.app:app"` (ASGI), `path: "backend"`, `requirements`, `health: "/health"`; Docker — `kind: "docker"`, `dockerfile`, `network` (`host` | `isolated`), `memory`, `cpus`. Нет блока — плагин без процесса (только страницы и скиллы) |
 | `ui` | `dist` — папка со страницами; `build` — команда сборки при установке (`"npm ci && npm run build"`), если dist не лежит в репозитории |
 | `menu` | пункты меню: `id`, `title` (коротко), `icon` (Bootstrap Icons, `bi-…`), `page` (`index.html#состояние`) |
 | `settings` | настройки по схеме: `type` (string, number, integer, boolean), `title`, `description`, `enum`, `default`, `secret: true` — для токенов и паролей |
