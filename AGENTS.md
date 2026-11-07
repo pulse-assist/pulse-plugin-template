@@ -173,6 +173,45 @@ async def transcribe(path, *, language, source, filename, mime):   # path — в
 `"runtime": {"kind": "docker", "network": "isolated", "memory": "2g", "cpus": 2}` — интернет есть, сервисы сервера
 (Mongo, порты 127.0.0.1) — нет. Пример — плагин DataLabs (pulse-assist/pulse-datalabs).
 
+## Агенты по шагам — зависимости, модели, фоновые задачи (контракт 1.12)
+
+Плагин, который ведёт работу своих агентов по шагам (`"pulse": ">=1.12"`). Пример — «Конвейер ТЗ»
+(pulse-assist/pulse-tz-pipeline).
+
+- **Зависимости** — `"dependencies": {"browser": {"version": ">=0.4", "optional": true, "reason": "зачем"}}`.
+  Обязательную Пульс ставит из каталога вместе с плагином и не даёт удалить; необязательную владелец выбирает
+  галочкой. Перед тем как звать её команды — `plugin.dependency_ok("browser")`.
+- **Свои агенты** — `agents/<ключ>.md`; `skills: имя, …` в заголовке прикрепит к агенту скиллы этого плагина.
+  `plugin.agents()` — их модели и режим. С правом `agents:models` страница настроек меняет модель шага
+  (`GET /api/plugins/<id>/models`, `PATCH /api/plugins/<id>/agents/<ключ>`). Полный доступ агенту (поиск в
+  интернете) — право `agents:privileged` и `await pulse.requestPrivileged("<ключ>", "зачем")` на странице: решает
+  владелец в окне Пульса.
+- **Фоновая задача** — право `bg`. Команду зовёт агент в чате; `plugin.bg_task("Заголовок", stages=[…])` ставит
+  задачу в этот чат (по `X-Pulse-Run` команды). Дальше — в своём потоке: `task.run_step("<ключ>", prompt,
+  title=…)` (запуск агента, его ход работы виден владельцу), `task.progress(text, stage=N, files=[…])`,
+  `task.message("задай владельцу вопросы…")` — агент чата передаст их и вернёт ответ командой плагина,
+  `task.finish(text)`. Владелец остановил — `TaskStopped`. Состояние держи в `plugin.data_dir`: после
+  перезапуска продолжай с того шага, где остановился; прерванный шаг `run_step` повторяет сам.
+
+## Шлюз к моделям — `llm.gateway` (контракт 1.13)
+
+Плагин, через который агенты Пульса получают модели других провайдеров (`"pulse": ">=1.13"`). Пример — «9Router»
+(pulse-assist/pulse-9router). Манифест: право `llm:provide` и `"llm": {"gateway": {"title": "Мой шлюз"}}`; код:
+
+```python
+from pulse_plugin.llm import Connection, Model, Unavailable
+
+plugin.provide_llm(models=lambda: [Model("ds/deepseek-flash", "DeepSeek")],
+                   connection=lambda: Connection(base_url="http://127.0.0.1:20128", auth_token=plugin.secret("api_key")))
+```
+
+- Адрес — Anthropic-совместимый, без `/v1`; вместо адреса — `Connection(service="<id сервиса>")`, если шлюз —
+  сервис плагина. Шлюз не готов — `raise Unavailable("почему")`.
+- Модели шлюза становятся интеграциями «Модель через шлюз» в «Моделях и CLI» (одна модель — одна интеграция).
+- Сервис по настройке: `"when": {"setting": "mode", "equals": ["own"]}` в записи `services`.
+- Свои настройки и секреты плагин меняет сам: со страницы — `pulse.api("/api/plugins/<id>/settings", {method: "PUT",
+  body: {settings, secrets}})`, из процесса — `plugin.save_settings(...)`; процесс перезапускается.
+
 ## Команды для агентов — `commands.json`
 
 ```json
