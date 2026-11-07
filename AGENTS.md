@@ -193,6 +193,25 @@ async def transcribe(path, *, language, source, filename, mime):   # path — в
   `task.finish(text)`. Владелец остановил — `TaskStopped`. Состояние держи в `plugin.data_dir`: после
   перезапуска продолжай с того шага, где остановился; прерванный шаг `run_step` повторяет сам.
 
+## Шлюз к моделям — `llm.gateway` (контракт 1.13)
+
+Плагин, через который агенты Пульса получают модели других провайдеров (`"pulse": ">=1.13"`). Пример — «9Router»
+(pulse-assist/pulse-9router). Манифест: право `llm:provide` и `"llm": {"gateway": {"title": "Мой шлюз"}}`; код:
+
+```python
+from pulse_plugin.llm import Connection, Model, Unavailable
+
+plugin.provide_llm(models=lambda: [Model("ds/deepseek-flash", "DeepSeek")],
+                   connection=lambda: Connection(base_url="http://127.0.0.1:20128", auth_token=plugin.secret("api_key")))
+```
+
+- Адрес — Anthropic-совместимый, без `/v1`; вместо адреса — `Connection(service="<id сервиса>")`, если шлюз —
+  сервис плагина. Шлюз не готов — `raise Unavailable("почему")`.
+- Модели шлюза становятся интеграциями «Модель через шлюз» в «Моделях и CLI» (одна модель — одна интеграция).
+- Сервис по настройке: `"when": {"setting": "mode", "equals": ["own"]}` в записи `services`.
+- Свои настройки и секреты плагин меняет сам: со страницы — `pulse.api("/api/plugins/<id>/settings", {method: "PUT",
+  body: {settings, secrets}})`, из процесса — `plugin.save_settings(...)`; процесс перезапускается.
+
 ## Команды для агентов — `commands.json`
 
 ```json
